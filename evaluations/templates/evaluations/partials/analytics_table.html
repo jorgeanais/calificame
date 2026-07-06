@@ -1,0 +1,74 @@
+{% load i18n %}
+{% if not has_data %}
+<div class="alert alert-warning">
+    <i class="bi bi-info-circle"></i> {% trans "No grades have been registered for this assessment yet." %}
+</div>
+{% else %}
+<div class="card shadow-sm mb-5">
+    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">{% trans "Comparative Matrix:" %} {{ assessment.name }}</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover table-sm align-middle mb-0" style="min-width: 1000px;">
+                <thead class="table-light">
+                    <!-- Group Header Row -->
+                    <tr>
+                        <th rowspan="2" style="width: 30%; min-width: 300px;" class="align-middle bg-secondary text-white sticky-top">{% trans "Criteria / Item" %}</th>
+                        <th rowspan="2" class="align-middle bg-secondary text-white text-center sticky-top">{% trans "Weight" %}</th>
+                        {% for group in header_groups %}
+                            <th colspan="{{ group.colspan }}" class="text-center bg-dark text-white border-end">{{ group.name }}</th>
+                        {% endfor %}
+                    </tr>
+                    <!-- Student Header Row -->
+                    <tr>
+                        {% for student in header_students %}
+                            <!-- Determine group boundary to draw thicker border -->
+                            <th class="text-center small py-2 {% if forloop.counter0|add:"1" %}border-end{% endif %}" style="writing-mode: vertical-lr; transform: rotate(180deg); height: 120px; white-space: nowrap;">
+                                {{ student.last_name_1 }} {{ student.first_names|slice:":1" }}.
+                            </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- GROUP ITEMS -->
+                    {% if matrix_group_rows %}
+                        <tr class="table-active">
+                            <td colspan="{{ header_students|length|add:2 }}" class="fw-bold text-primary border-bottom border-primary"><i class="bi bi-people-fill"></i> {% trans "Group Criteria" %}</td>
+                        </tr>
+                        {% for row in matrix_group_rows %}
+                        <tr>
+                            <td class="small pe-3 bg-light"><strong>{{ row.item.order }}</strong> - {{ row.item.description }}</td>
+                            <td class="text-center bg-light">{{ row.item.weight }}</td>
+                            {% for score in row.scores %}
+                                <td class="text-center fw-bold {% if score != None %}bg-white{% else %}bg-light text-muted{% endif %}">
+                                    {% if score != None %}{{ score|floatformat:0 }}%{% else %}-{% endif %}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    {% endif %}
+
+                    <!-- INDIVIDUAL ITEMS -->
+                    {% if matrix_indiv_rows %}
+                        <tr class="table-active">
+                            <td colspan="{{ header_students|length|add:2 }}" class="fw-bold text-success border-bottom border-success border-top border-2"><i class="bi bi-person-fill"></i> {% trans "Individual Criteria" %}</td>
+                        </tr>
+                        {% for row in matrix_indiv_rows %}
+                        <tr>
+                            <td class="small pe-3 bg-light"><strong>{{ row.item.order }}</strong> - {{ row.item.description }}</td>
+                            <td class="text-center bg-light">{{ row.item.weight }}</td>
+                            {% for score in row.scores %}
+                                <td class="text-center fw-bold {% if score != None %}bg-white{% else %}bg-light text-muted{% endif %}">
+                                    {% if score != None %}{{ score|floatformat:0 }}%{% else %}-{% endif %}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}

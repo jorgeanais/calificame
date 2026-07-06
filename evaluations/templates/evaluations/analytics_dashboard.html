@@ -1,0 +1,110 @@
+{% extends "evaluations/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'index' %}">{% trans "Home" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Analytics" %}</li>
+  </ol>
+</nav>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2 class="display-6"><i class="bi bi-bar-chart-line"></i> {% trans "Analytics & Reports" %}</h2>
+        <p class="lead">{% trans "Compare item-level achievements across all groups and students." %}</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card shadow-sm border-secondary">
+            <div class="card-body bg-light">
+                <form class="row gx-3 gy-2 align-items-center" onsubmit="event.preventDefault(); loadReport();">
+                    <div class="col-sm-4">
+                        <label for="courseSelect" class="form-label fw-bold">{% trans "Course" %}</label>
+                        <select class="form-select" id="courseSelect" required>
+                            <option value="">{% trans "-- Select a Course --" %}</option>
+                            {% for course in courses %}
+                                <option value="{{ course.id }}">[{{ course.period }}] {{ course.code }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-sm-4">
+                        <label for="assessmentSelect" class="form-label fw-bold">{% trans "Assessment" %}</label>
+                        <select class="form-select" id="assessmentSelect" disabled required>
+                            <option value="">{% trans "-- Select Assessment --" %}</option>
+                        </select>
+                    </div>
+                    <div class="col-auto align-self-end">
+                        <button type="submit" class="btn btn-secondary" id="generateBtn" disabled><i class="bi bi-table"></i> {% trans "Generate Report" %}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Container -->
+<div id="reportContainer">
+    <div class="text-center text-muted p-5">
+        <i class="bi bi-graph-up display-1 text-light"></i>
+        <h4 class="mt-3">{% trans "Select a course and assessment to view the comparative matrix." %}</h4>
+    </div>
+</div>
+
+<script>
+    const courseSelect = document.getElementById('courseSelect');
+    const assessmentSelect = document.getElementById('assessmentSelect');
+    const generateBtn = document.getElementById('generateBtn');
+    const reportContainer = document.getElementById('reportContainer');
+
+    courseSelect.addEventListener('change', function() {
+        const courseId = this.value;
+        assessmentSelect.innerHTML = '<option value="">{% trans "-- Select Assessment --" %}</option>';
+        assessmentSelect.disabled = true;
+        generateBtn.disabled = true;
+        
+        if (courseId) {
+            fetch(`/${document.documentElement.lang}/grading/api/assessments/${courseId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    data.assessments.forEach(assessment => {
+                        const option = document.createElement('option');
+                        option.value = assessment.id;
+                        option.textContent = `${assessment.name}`;
+                        assessmentSelect.appendChild(option);
+                    });
+                    assessmentSelect.disabled = false;
+                });
+        }
+    });
+
+    assessmentSelect.addEventListener('change', function() {
+        generateBtn.disabled = !this.value;
+    });
+
+    function loadReport() {
+        const courseId = courseSelect.value;
+        const assessmentId = assessmentSelect.value;
+        
+        if (!courseId || !assessmentId) return;
+
+        reportContainer.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-secondary" role="status"></div><p class="mt-2">{% trans "Generating matrix..." %}</p></div>';
+        
+        fetch(`/${document.documentElement.lang}/analytics/report/${courseId}/${assessmentId}/`)
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.error) });
+                }
+                return response.text();
+            })
+            .then(html => {
+                reportContainer.innerHTML = html;
+            })
+            .catch(error => {
+                reportContainer.innerHTML = `<div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> ${error.message || '{% trans "Error generating report." %}'}</div>`;
+            });
+    }
+</script>
+{% endblock %}

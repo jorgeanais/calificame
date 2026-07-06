@@ -1,0 +1,140 @@
+{% extends "evaluations/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'index' %}">{% trans "Home" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ course.code }} - {{ course.name }}</li>
+  </ol>
+</nav>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2 class="display-6">{% trans "Students Enrolled" %}</h2>
+        <p class="lead">{% trans "Course:" %} <strong>{{ course.name }}</strong> ({% trans "Section:" %} {{ course.section }})</p>
+        <p class="text-muted small">{% trans "Grading:" %} {% trans "Presentation" %} {{ course.presentation_weight }}% / {% trans "Exam" %} {{ course.exam_weight }}% {% if course.exemption_grade %}| {% trans "Exemption" %} >= {{ course.exemption_grade }}{% endif %}</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                {% if student_data %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered align-middle">
+                        <thead class="table-dark text-center">
+                            <tr>
+                                <th scope="col" rowspan="2" class="align-middle">#</th>
+                                <th scope="col" rowspan="2" class="align-middle">{% trans "Identification (RUT)" %}</th>
+                                <th scope="col" rowspan="2" class="align-middle">{% trans "Last Name(s)" %}</th>
+                                <th scope="col" rowspan="2" class="align-middle">{% trans "First Name(s)" %}</th>
+                                <th scope="col" rowspan="2" class="align-middle">{% trans "Assigned Group" %}</th>
+                                
+                                {% if pres_assessments %}
+                                <th scope="col" colspan="{{ pres_assessments.count }}" class="bg-primary border-primary">{% trans "Presentation Assessments" %}</th>
+                                <th scope="col" rowspan="2" class="align-middle bg-primary border-primary">{% trans "NP" %} ({{ course.presentation_weight }}%)</th>
+                                {% endif %}
+                                
+                                {% if exam_assessments %}
+                                <th scope="col" colspan="{{ exam_assessments.count }}" class="bg-info border-info text-dark">{% trans "Exam Assessments" %}</th>
+                                <th scope="col" rowspan="2" class="align-middle bg-info border-info text-dark">{% trans "NE" %} ({{ course.exam_weight }}%)</th>
+                                {% endif %}
+                                
+                                <th scope="col" rowspan="2" class="align-middle bg-success border-success">{% trans "Final Grade" %}</th>
+                            </tr>
+                            <tr>
+                                {% for assessment in pres_assessments %}
+                                    <th scope="col" class="bg-light text-dark"><small>{{ assessment.name }}<br>({{ assessment.weight_percentage }}%)</small></th>
+                                {% endfor %}
+                                {% for assessment in exam_assessments %}
+                                    <th scope="col" class="bg-light text-dark"><small>{{ assessment.name }}<br>({{ assessment.weight_percentage }}%)</small></th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in student_data %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td><code>{{ item.student.identification }}</code></td>
+                                <td>{{ item.student.last_name_1 }} {{ item.student.last_name_2|default_if_none:"" }}</td>
+                                <td>{{ item.student.first_names }}</td>
+                                <td>
+                                    {% if item.group %}
+                                        <span class="badge bg-secondary">{{ item.group.name }}</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-muted border">{% trans "No group" %}</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- Presentation Grades -->
+                                {% for grade_obj in item.pres_grades %}
+                                    <td class="text-center">
+                                        {% if grade_obj.grade %}
+                                            <span class="{% if grade_obj.grade >= 4.0 %}text-primary{% else %}text-danger{% endif %} fw-bold">{{ grade_obj.grade|floatformat:1 }}</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                {% endfor %}
+                                
+                                {% if pres_assessments %}
+                                <td class="text-center table-primary fw-bold">
+                                    {% if item.np_grade %}
+                                        <span class="{% if item.np_grade >= 4.0 %}text-success{% else %}text-danger{% endif %}">{{ item.np_grade|floatformat:1 }}</span>
+                                    {% else %}
+                                        <span class="text-muted">{% trans "Pend." %}</span>
+                                    {% endif %}
+                                </td>
+                                {% endif %}
+                                
+                                <!-- Exam Grades -->
+                                {% for grade_obj in item.exam_grades %}
+                                    <td class="text-center">
+                                        {% if item.is_exempt %}
+                                            <span class="badge bg-success">{% trans "Exempt" %}</span>
+                                        {% elif grade_obj.grade %}
+                                            <span class="{% if grade_obj.grade >= 4.0 %}text-info{% else %}text-danger{% endif %} fw-bold">{{ grade_obj.grade|floatformat:1 }}</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                {% endfor %}
+                                
+                                {% if exam_assessments %}
+                                <td class="text-center table-info fw-bold">
+                                    {% if item.is_exempt %}
+                                        <span class="badge bg-success">{% trans "Exempt" %}</span>
+                                    {% elif item.ne_grade %}
+                                        <span class="{% if item.ne_grade >= 4.0 %}text-success{% else %}text-danger{% endif %}">{{ item.ne_grade|floatformat:1 }}</span>
+                                    {% else %}
+                                        <span class="text-muted">{% trans "Pend." %}</span>
+                                    {% endif %}
+                                </td>
+                                {% endif %}
+                                
+                                <!-- Final Grade -->
+                                <td class="text-center table-success fw-bold fs-5">
+                                    {% if item.final_grade %}
+                                        <span class="{% if item.final_grade >= 4.0 %}text-success{% else %}text-danger{% endif %}">{{ item.final_grade|floatformat:1 }}</span>
+                                    {% else %}
+                                        <span class="text-muted fs-6">{% trans "Pending" %}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                    <div class="alert alert-warning" role="alert">
+                        {% trans "There are no students enrolled in this course yet. Use the Admin panel to import or add them." %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
