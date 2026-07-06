@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn cydonia.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - .:/app
+      - db_data:/app/db_data
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_PATH=/app/db_data/db.sqlite3
+
+volumes:
+  db_data:
