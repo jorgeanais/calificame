@@ -471,7 +471,7 @@ def download_feedback_pdf(request, eval_id):
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     
     template = get_template(template_path)
-    html = template.render(context)
+    html = template.render(context, request)
     
     # Create PDF
     pisa_status = pisa.CreatePDF(
