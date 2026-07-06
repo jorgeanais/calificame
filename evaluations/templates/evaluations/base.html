@@ -20,9 +20,20 @@
             </a>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    {% if user.is_authenticated %}
+                    <li class="nav-item d-flex align-items-center me-3 text-light">
+                        <i class="bi bi-person-circle me-1"></i> {{ user.username }}
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'admin:index' %}">{% trans "Admin Panel" %}</a>
                     </li>
+                    <li class="nav-item">
+                        <form action="{% url 'admin:logout' %}?next=/" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="nav-link btn btn-link border-0">{% trans "Logout" %}</button>
+                        </form>
+                    </li>
+                    {% endif %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-globe"></i> Language

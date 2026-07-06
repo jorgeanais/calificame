@@ -1609,3 +1609,6 @@ msgstr ""
 #: venv/lib/python3.14/site-packages/django/views/templates/default_urlconf.html:236
 msgid "Connect, get help, or contribute"
 msgstr ""
+
+msgid "Logout"
+msgstr "Cerrar sesión"
