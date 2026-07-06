@@ -1,0 +1,56 @@
+{
+  "rubric_metadata": {
+    "name": "Evaluación Entrega 3 - Arquitectura",
+    "description": "Rúbrica de evaluación para la tercera entrega del proyecto de Data Science."
+  },
+  "levels": [
+    {
+      "category_name": "Muy buen desempeño",
+      "score_percentage": 100.0
+    },
+    {
+      "category_name": "Buen desempeño",
+      "score_percentage": 80.0
+    },
+    {
+      "category_name": "Desempeño aceptable",
+      "score_percentage": 60.0
+    },
+    {
+      "category_name": "Desempeño incipiente",
+      "score_percentage": 40.0
+    },
+    {
+      "category_name": "Desempeño no logrado",
+      "score_percentage": 0.0
+    }
+  ],
+  "items": [
+    {
+      "order": "1A",
+      "item_type": "GROUP",
+      "description": "Crea proceso de ingesta utilizando variedad de APIs disponibles en la industria para implementar procesos de ingesta de datos en línea.",
+      "weight": 0.10,
+      "cells": {
+        "Muy buen desempeño": "El grupo crea un proceso de ingesta robusto utilizando 3 o más APIs industriales, documentadas y funcionando en tiempo real de manera óptima.",
+        "Buen desempeño": "El grupo crea un proceso de ingesta utilizando 1 o 2 APIs, con documentación básica y funcionamiento adecuado pero con latencia menor.",
+        "Desempeño aceptable": "El proceso de ingesta funciona parcialmente o utiliza APIs no estándar, requiriendo intervención manual frecuente.",
+        "Desempeño incipiente": "El proceso de ingesta es muy básico, no se conecta a APIs externas o presenta fallos constantes de ejecución.",
+        "Desempeño no logrado": "No se observa evidencia de la creación del proceso de ingesta."
+      }
+    },
+    {
+      "order": "1B",
+      "item_type": "INDIVIDUAL",
+      "description": "Demuestra dominio sobre la creación del proceso de ingesta, fundamentando con argumentos coherentes y propios de la disciplina.",
+      "weight": 0.20,
+      "cells": {
+        "Muy buen desempeño": "El alumno demuestra dominio técnico profundo, fundamenta con argumentos sólidos propios de la disciplina y responde asertivamente a todas las consultas.",
+        "Buen desempeño": "El alumno demuestra dominio adecuado, sus fundamentos son correctos pero carecen de profundidad técnica en algunas respuestas específicas.",
+        "Desempeño aceptable": "El alumno presenta dudas al fundamentar el proceso y utiliza vocabulario poco técnico o confuso durante la presentación.",
+        "Desempeño incipiente": "El alumno apenas logra explicar fragmentos del proceso y no puede sostener una argumentación técnica coherente frente a las consultas.",
+        "Desempeño no logrado": "El alumno desconoce el funcionamiento del proceso creado, no participa en la explicación o sus argumentos son totalmente erróneos."
+      }
+    }
+  ]
+}
