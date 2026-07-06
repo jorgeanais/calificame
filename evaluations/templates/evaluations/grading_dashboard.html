@@ -1,0 +1,182 @@
+{% extends "evaluations/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'index' %}">{% trans "Home" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Grading Room" %}</li>
+  </ol>
+</nav>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2 class="display-6"><i class="bi bi-pencil-square"></i> {% trans "Grading Room" %}</h2>
+        <p class="lead">{% trans "Select a course and an assessment to start grading." %}</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Selectors Column -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">{% trans "1. Selection" %}</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="courseSelect" class="form-label fw-bold">{% trans "Course" %}</label>
+                    <select class="form-select" id="courseSelect">
+                        <option value="">{% trans "-- Select a Course --" %}</option>
+                        {% for course in courses %}
+                            <option value="{{ course.id }}">[{{ course.period }}] {{ course.code }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="assessmentSelect" class="form-label fw-bold">{% trans "Assessment" %}</label>
+                    <select class="form-select" id="assessmentSelect" disabled>
+                        <option value="">{% trans "-- Select Assessment --" %}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Groups/Board Column -->
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">{% trans "2. Groups Board" %}</h5>
+            </div>
+            <div class="card-body" id="groupsBoard">
+                <div class="text-center text-muted p-5" id="boardPlaceholder">
+                    <h4>{% trans "Select a course and assessment to view groups." %}</h4>
+                </div>
+                
+                <div class="row g-3 d-none" id="groupsContainer">
+                    <!-- Groups will be injected here by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const courseSelect = document.getElementById('courseSelect');
+    const assessmentSelect = document.getElementById('assessmentSelect');
+    const groupsContainer = document.getElementById('groupsContainer');
+    const boardPlaceholder = document.getElementById('boardPlaceholder');
+
+    // Auto-select based on URL parameters if present
+    const autoCourseId = "{{ auto_course_id }}";
+    const autoAssessmentId = "{{ auto_assessment_id }}";
+
+    document.addEventListener('DOMContentLoaded', function() {
+        if (autoCourseId) {
+            courseSelect.value = autoCourseId;
+            loadAssessments(autoCourseId, autoAssessmentId);
+        }
+    });
+
+    courseSelect.addEventListener('change', function() {
+        const courseId = this.value;
+        loadAssessments(courseId);
+    });
+
+    function loadAssessments(courseId, assessmentIdToSelect = null) {
+        assessmentSelect.innerHTML = '<option value="">{% trans "-- Select Assessment --" %}</option>';
+        assessmentSelect.disabled = true;
+        hideBoard();
+        
+        if (courseId) {
+            fetch(`/${document.documentElement.lang}/grading/api/assessments/${courseId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    data.assessments.forEach(assessment => {
+                        const option = document.createElement('option');
+                        option.value = assessment.id;
+                        option.textContent = `${assessment.name} (${assessment.weight_percentage}%) [${assessment.assessment_type}]`;
+                        assessmentSelect.appendChild(option);
+                    });
+                    assessmentSelect.disabled = false;
+                    
+                    if (assessmentIdToSelect) {
+                        assessmentSelect.value = assessmentIdToSelect;
+                        loadGroups(courseId, assessmentIdToSelect);
+                    }
+                });
+        }
+    }
+
+    assessmentSelect.addEventListener('change', function() {
+        const courseId = courseSelect.value;
+        const assessmentId = this.value;
+        
+        if (courseId && assessmentId) {
+            loadGroups(courseId, assessmentId);
+        } else {
+            hideBoard();
+        }
+    });
+    
+    function hideBoard() {
+        groupsContainer.classList.add('d-none');
+        boardPlaceholder.classList.remove('d-none');
+    }
+
+    function loadGroups(courseId, assessmentId) {
+        boardPlaceholder.classList.add('d-none');
+        groupsContainer.classList.remove('d-none');
+        groupsContainer.innerHTML = '<div class="text-center w-100"><div class="spinner-border text-primary" role="status"></div></div>';
+        
+        fetch(`/${document.documentElement.lang}/grading/api/groups/${courseId}/${assessmentId}/`)
+            .then(response => response.json())
+            .then(data => {
+                groupsContainer.innerHTML = '';
+                
+                if (data.groups.length === 0) {
+                    groupsContainer.innerHTML = '<div class="alert alert-warning w-100">{% trans "No groups found in this course." %}</div>';
+                    return;
+                }
+                
+                data.groups.forEach(group => {
+                    const col = document.createElement('div');
+                    col.className = 'col-md-6';
+                    
+                    const btnClass = group.is_evaluated ? 'btn-outline-success' : 'btn-primary';
+                    const icon = group.is_evaluated ? '<i class="bi bi-check-circle"></i> {% trans "Evaluated (Edit)" %}' : '{% trans "Grade Now" %}';
+                    
+                    let pdfBtn = '';
+                    if (group.is_evaluated && group.eval_id) {
+                        pdfBtn = `<a href="/${document.documentElement.lang}/evaluation/${group.eval_id}/feedback-pdf/" target="_blank" class="btn btn-outline-secondary w-100 mt-2"><i class="bi bi-file-earmark-pdf"></i> {% trans "Download PDF" %}</a>`;
+                    }
+                    
+                    const membersHtml = group.members.map(m => {
+                        let gradeHtml = '';
+                        if (m.grade !== null) {
+                            const gradeClass = m.grade >= 4.0 ? 'text-success' : 'text-danger';
+                            gradeHtml = ` <strong class="${gradeClass}">${m.grade.toFixed(1)}</strong>`;
+                        }
+                        return `<span class="badge bg-light text-dark border me-1 mb-1 fw-normal fs-6">${m.name}${gradeHtml}</span>`;
+                    }).join('');
+                    
+                    col.innerHTML = `
+                        <div class="card h-100 border-${group.is_evaluated ? 'success' : 'primary'}">
+                            <div class="card-body text-center d-flex flex-column">
+                                <h5 class="card-title">${group.name}</h5>
+                                <div class="mb-3 flex-grow-1">
+                                    ${membersHtml}
+                                </div>
+                                <a href="/${document.documentElement.lang}/grading/start/${assessmentId}/${group.id}/" class="btn ${btnClass} w-100 mt-auto">${icon}</a>
+                                ${pdfBtn}
+                            </div>
+                        </div>
+                    `;
+                    groupsContainer.appendChild(col);
+                });
+            });
+    }
+</script>
+{% endblock %}
