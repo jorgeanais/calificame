@@ -1,8 +1,9 @@
+{% load i18n %}
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Feedback Report</title>
+    <title>{% trans "Feedback Report" %}</title>
     <style>
         @page {
             size: letter;
@@ -78,30 +79,30 @@
     <table class="header-table">
         <tr>
             <td>
-                <h1>Evaluation Feedback Report</h1>
-                <p style="margin:2px 0;"><strong>Course:</strong> {{ course.code }} - {{ course.name }} ({{ course.period }})</p>
-                <p style="margin:2px 0;"><strong>Assessment:</strong> {{ assessment.name }} (Total Weight: {{ assessment.weight_percentage }}%)</p>
-                <p style="margin:2px 0;"><strong>Group:</strong> {{ group.name }} | <strong>Date:</strong> {{ evaluation.date|date:"F d, Y" }}</p>
+                <h1>{% trans "Evaluation Feedback Report" %}</h1>
+                <p style="margin:2px 0;"><strong>{% trans "Course:" %}</strong> {{ course.code }} - {{ course.name }} ({{ course.period }})</p>
+                <p style="margin:2px 0;"><strong>{% trans "Assessment:" %}</strong> {{ assessment.name }} ({% trans "Total Weight:" %} {{ assessment.weight_percentage }}%)</p>
+                <p style="margin:2px 0;"><strong>{% trans "Group:" %}</strong> {{ group.name }} | <strong>{% trans "Date:" %}</strong> {{ evaluation.date|date:"F d, Y" }}</p>
             </td>
         </tr>
     </table>
 
-    <h2>1. Group Performance</h2>
+    <h2>{% trans "1. Group Performance" %}</h2>
     
     {% if group_scores %}
     <table class="results-table">
         <thead>
             <tr>
-                <th class="criteria-col">Criteria</th>
-                <th class="level-col">Level Achieved</th>
-                <th class="comment-col">Specific Feedback</th>
+                <th class="criteria-col">{% trans "Criteria" %}</th>
+                <th class="level-col">{% trans "Level Achieved" %}</th>
+                <th class="comment-col">{% trans "Specific Feedback" %}</th>
             </tr>
         </thead>
         <tbody>
             {% for score in group_scores %}
             <tr>
                 <td><strong>{{ score.rubric_item.order }}</strong><br/>
-                    <span style="color:#555; font-size:7pt;">Weight: {{ score.rubric_item.weight }}</span><br/>
+                    <span style="color:#555; font-size:7pt;">{% trans "Weight:" %} {{ score.rubric_item.weight }}</span><br/>
                     {{ score.rubric_item.description }}
                 </td>
                 <td style="text-align: center; font-weight: bold;">{{ score.level_achieved.category_name }}<br/>({{ score.level_achieved.score_percentage|floatformat:0 }}%)</td>
@@ -111,16 +112,16 @@
         </tbody>
     </table>
     {% else %}
-    <p>No group criteria evaluated.</p>
+    <p>{% trans "No group criteria evaluated." %}</p>
     {% endif %}
 
-    <h2>2. Individual Performance & Final Grades</h2>
+    <h2>{% trans "2. Individual Performance & Final Grades" %}</h2>
     
     {% for s_data in student_data %}
         <table class="header-table" style="margin-bottom: 2px;">
             <tr>
                 <td><h3>{{ s_data.obj.first_names }} {{ s_data.obj.last_name_1 }}</h3></td>
-                <td style="text-align: right;"><strong>Final Assessment Grade:</strong> <span style="font-weight: bold; font-size: 11pt;">{{ s_data.grade|floatformat:1 }}</span></td>
+                <td style="text-align: right;"><strong>{% trans "Final Assessment Grade:" %}</strong> <span style="font-weight: bold; font-size: 11pt;">{{ s_data.grade|floatformat:1 }}</span></td>
             </tr>
         </table>
         
@@ -128,16 +129,16 @@
         <table class="results-table">
             <thead>
                 <tr>
-                    <th class="criteria-col">Criteria</th>
-                    <th class="level-col">Level Achieved</th>
-                    <th class="comment-col">Specific Feedback</th>
+                    <th class="criteria-col">{% trans "Criteria" %}</th>
+                    <th class="level-col">{% trans "Level Achieved" %}</th>
+                    <th class="comment-col">{% trans "Specific Feedback" %}</th>
                 </tr>
             </thead>
             <tbody>
                 {% for score in s_data.scores %}
                 <tr>
                     <td><strong>{{ score.rubric_item.order }}</strong><br/>
-                        <span style="color:#555; font-size:7pt;">Weight: {{ score.rubric_item.weight }}</span><br/>
+                        <span style="color:#555; font-size:7pt;">{% trans "Weight:" %} {{ score.rubric_item.weight }}</span><br/>
                         {{ score.rubric_item.description }}
                     </td>
                     <td style="text-align: center; font-weight: bold;">{{ score.level_achieved.category_name }}<br/>({{ score.level_achieved.score_percentage|floatformat:0 }}%)</td>
@@ -147,19 +148,19 @@
             </tbody>
         </table>
         {% else %}
-        <p>No individual criteria evaluated.</p>
+        <p>{% trans "No individual criteria evaluated." %}</p>
         {% endif %}
     {% endfor %}
 
     {% if evaluation.general_comment %}
-    <h2>3. General Comments</h2>
+    <h2>{% trans "3. General Comments" %}</h2>
     <div class="comment-box">
         {{ evaluation.general_comment|linebreaks }}
     </div>
     {% endif %}
 
     <div id="footerContent">
-        Cydonia Evaluation System - Page <pdf:pagenumber> of <pdf:pagecount>
+        Cydonia {% trans "Evaluation System" %} - {% trans "Page" %} <pdf:pagenumber> {% trans "of" %} <pdf:pagecount>
     </div>
 
 </body>

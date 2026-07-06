@@ -1612,3 +1612,63 @@ msgstr ""
 
 msgid "Logout"
 msgstr "Cerrar sesión"
+
+msgid "Feedback Report"
+msgstr "Reporte de Retroalimentación"
+
+msgid "Evaluation Feedback Report"
+msgstr "Reporte de Retroalimentación de Evaluación"
+
+msgid "Course:"
+msgstr "Curso:"
+
+msgid "Assessment:"
+msgstr "Evaluación:"
+
+msgid "Total Weight:"
+msgstr "Peso Total:"
+
+msgid "Group:"
+msgstr "Grupo:"
+
+msgid "Date:"
+msgstr "Fecha:"
+
+msgid "1. Group Performance"
+msgstr "1. Desempeño Grupal"
+
+msgid "Criteria"
+msgstr "Criterio"
+
+msgid "Level Achieved"
+msgstr "Nivel Alcanzado"
+
+msgid "Specific Feedback"
+msgstr "Comentario Específico"
+
+msgid "Weight:"
+msgstr "Peso:"
+
+msgid "No group criteria evaluated."
+msgstr "No se evaluaron criterios grupales."
+
+msgid "2. Individual Performance & Final Grades"
+msgstr "2. Desempeño Individual y Notas Finales"
+
+msgid "Final Assessment Grade:"
+msgstr "Nota Final de la Evaluación:"
+
+msgid "No individual criteria evaluated."
+msgstr "No se evaluaron criterios individuales."
+
+msgid "3. General Comments"
+msgstr "3. Comentarios Generales"
+
+msgid "Evaluation System"
+msgstr "Sistema de Evaluación"
+
+msgid "Page"
+msgstr "Página"
+
+msgid "of"
+msgstr "de"
