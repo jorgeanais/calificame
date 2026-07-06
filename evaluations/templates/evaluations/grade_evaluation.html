@@ -2,10 +2,26 @@
 
 {% block extrahead %}
 <style>
-    .rubric-cell { cursor: pointer; transition: all 0.2s; border: 2px solid transparent; }
-    .rubric-cell:hover { border-color: #0d6efd; background-color: #f8f9fa; }
-    .rubric-cell.selected { border-color: #0d6efd; background-color: #e9ecef; box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25); }
-    .hidden-radio { display: none; }
+    .rubric-cell { cursor: pointer; transition: all 0.2s; border: 3px solid transparent; position: relative; }
+    .rubric-cell:hover { border-color: #adb5bd; background-color: #f8f9fa; }
+    
+    .rubric-cell.selected-group { 
+        border-color: #0d6efd !important; 
+        background-color: #cfe2ff !important; 
+        box-shadow: 0px 0px 15px 3px rgba(13, 110, 253, 0.4) !important;
+        transform: scale(1.02);
+        z-index: 10;
+    }
+    
+    .rubric-cell.selected-indiv { 
+        border-color: #198754 !important; 
+        background-color: #d1e7dd !important; 
+        box-shadow: 0px 0px 15px 3px rgba(25, 135, 84, 0.4) !important;
+        transform: scale(1.02);
+        z-index: 10;
+    }
+    
+    .hidden-radio { margin-bottom: 10px; }
 </style>
 {% endblock %}
 
@@ -57,7 +73,7 @@
                     <div class="row g-3">
                         {% for cell in row.cells %}
                         <div class="col">
-                            <label class="card h-100 rubric-cell {% if cell.is_selected %}selected{% endif %}" onclick="selectCell(this, 'group_item_{{ row.item.id }}')">
+                            <label class="card h-100 rubric-cell {% if cell.is_selected %}selected-group{% endif %}" onclick="selectCell(this, 'group_item_{{ row.item.id }}', 'group')">
                                 <input type="radio" class="hidden-radio" name="group_item_{{ row.item.id }}" value="{{ cell.level.id }}" {% if cell.is_selected %}checked{% endif %} required>
                                 <div class="card-body">
                                     <h6 class="card-title text-center text-primary">{{ cell.level.category_name }} <br><small class="text-muted">({{ cell.level.score_percentage }}%)</small></h6>
@@ -95,7 +111,7 @@
                     <div class="row g-3">
                         {% for cell in row.cells %}
                         <div class="col">
-                            <label class="card h-100 rubric-cell {% if cell.is_selected %}selected{% endif %}" onclick="selectCell(this, 'indiv_{{ s_data.student.id }}_item_{{ row.item.id }}')">
+                            <label class="card h-100 rubric-cell {% if cell.is_selected %}selected-indiv{% endif %}" onclick="selectCell(this, 'indiv_{{ s_data.student.id }}_item_{{ row.item.id }}', 'indiv')">
                                 <input type="radio" class="hidden-radio" name="indiv_{{ s_data.student.id }}_item_{{ row.item.id }}" value="{{ cell.level.id }}" {% if cell.is_selected %}checked{% endif %} required>
                                 <div class="card-body">
                                     <h6 class="card-title text-center text-success">{{ cell.level.category_name }} <br><small class="text-white-50 text-muted">({{ cell.level.score_percentage }}%)</small></h6>
@@ -132,14 +148,17 @@
 </form>
 
 <script>
-    function selectCell(element, groupName) {
-        // Remove 'selected' class from all labels in the same radio group
+    function selectCell(element, groupName, type) {
+        // Remove 'selected' classes from all labels in the same radio group
         const radios = document.querySelectorAll(`input[name="${groupName}"]`);
+        const selectClass = type === 'group' ? 'selected-group' : 'selected-indiv';
         radios.forEach(radio => {
-            radio.closest('label').classList.remove('selected');
+            radio.closest('label').classList.remove('selected-group', 'selected-indiv');
         });
-        // Add 'selected' class to the clicked label
-        element.classList.add('selected');
+        // Add specific 'selected' class to the clicked label
+        element.classList.add(selectClass);
+        // Ensure the radio button is checked
+        element.querySelector('input[type="radio"]').checked = true;
     }
 </script>
 {% endblock %}
