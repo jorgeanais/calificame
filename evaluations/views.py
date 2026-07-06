@@ -7,6 +7,8 @@ from urllib.parse import urlencode
 from .models import Course, Evaluation, RubricCell, GroupItemScore, IndividualItemScore, RubricLevel, CourseAssessment, Group
 
 
+from django.contrib.auth.decorators import login_required
+
 def get_default_period():
     now = timezone.now()
     year = now.year
@@ -18,6 +20,7 @@ def get_default_period():
     else:
         return f"{year}-2"
 
+@login_required
 def index(request):
     # Get all distinct periods from the database
     available_periods = Course.objects.values_list('period', flat=True).distinct().order_by('-period')
@@ -46,6 +49,7 @@ def index(request):
     }
     return render(request, 'evaluations/index.html', context)
 
+@login_required
 def course_students(request, course_id):
     course = get_object_or_404(Course, pk=course_id)
     students = course.students.all().order_by('last_name_1', 'last_name_2', 'first_names')
@@ -142,6 +146,7 @@ def course_students(request, course_id):
     }
     return render(request, 'evaluations/course_students.html', context)
 
+@login_required
 def grade_evaluation(request, eval_id):
     evaluation = get_object_or_404(Evaluation, pk=eval_id)
     assessment = evaluation.assessment
@@ -246,6 +251,7 @@ def grade_evaluation(request, eval_id):
 
 from django.http import JsonResponse
 
+@login_required
 def grading_dashboard(request):
     courses = Course.objects.all().order_by('-period', 'code')
     context = {
@@ -255,11 +261,13 @@ def grading_dashboard(request):
     }
     return render(request, 'evaluations/grading_dashboard.html', context)
 
+@login_required
 def api_course_assessments(request, course_id):
     course = get_object_or_404(Course, pk=course_id)
     assessments = course.assessments.all().values('id', 'name', 'assessment_type', 'weight_percentage')
     return JsonResponse({'assessments': list(assessments)})
 
+@login_required
 def api_course_groups(request, course_id, assessment_id):
     course = get_object_or_404(Course, pk=course_id)
     assessment = get_object_or_404(CourseAssessment, pk=assessment_id)
@@ -293,6 +301,7 @@ def api_course_groups(request, course_id, assessment_id):
         
     return JsonResponse({'groups': data})
 
+@login_required
 def start_grading(request, assessment_id, group_id):
     assessment = get_object_or_404(CourseAssessment, pk=assessment_id)
     group = get_object_or_404(Group, pk=group_id)
@@ -311,6 +320,7 @@ def start_grading(request, assessment_id, group_id):
         
     # Redirect to the interactive grading view
     return redirect('grade_evaluation', eval_id=evaluation.id)
+@login_required
 def analytics_dashboard(request):
     courses = Course.objects.all().order_by('-period', 'code')
     context = {
@@ -318,6 +328,7 @@ def analytics_dashboard(request):
     }
     return render(request, 'evaluations/analytics_dashboard.html', context)
 
+@login_required
 def analytics_report(request, course_id, assessment_id):
     course = get_object_or_404(Course, pk=course_id)
     assessment = get_object_or_404(CourseAssessment, pk=assessment_id)
@@ -405,6 +416,7 @@ from django.http import HttpResponse
 from xhtml2pdf import pisa
 import io
 
+@login_required
 def download_feedback_pdf(request, eval_id):
     evaluation = get_object_or_404(Evaluation, pk=eval_id)
     course = evaluation.group.course

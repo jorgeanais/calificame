@@ -133,3 +133,6 @@ LANGUAGES = [
 LOCALE_PATHS = [
     os.path.join(BASE_DIR, 'locale'),
 ]
+
+# Authentication routing
+LOGIN_URL = '/admin/login/'
