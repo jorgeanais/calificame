@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Feedback Report</title>
+    <style>
+        @page {
+            size: letter;
+            margin: 1cm;
+            @frame footer {
+                -pdf-frame-content: footerContent;
+                bottom: 0.5cm;
+                margin-left: 1cm;
+                margin-right: 1cm;
+                height: 0.5cm;
+                text-align: right;
+                font-family: Helvetica, sans-serif;
+                font-size: 7pt;
+                color: #777;
+            }
+        }
+        body {
+            font-family: Helvetica, sans-serif;
+            font-size: 8pt;
+            color: #333;
+            line-height: 1.2;
+        }
+        h1 { color: #2c3e50; font-size: 14pt; margin-bottom: 2px; margin-top: 0;}
+        h2 { color: #34495e; font-size: 10pt; border-bottom: 1px solid #bdc3c7; padding-bottom: 2px; margin-top: 10px; margin-bottom: 4px;}
+        h3 { color: #16a085; font-size: 9pt; margin-top: 5px; margin-bottom: 2px;}
+        
+        .header-table { width: 100%; margin-bottom: 10px; }
+        .header-table td { border: none; padding: 2px; vertical-align: middle;}
+        
+        .grade-box {
+            background-color: #f8f9fa;
+            border: 1px solid #2c3e50;
+            padding: 4px;
+            text-align: center;
+            width: 100px;
+            border-radius: 4px;
+        }
+        .grade-number { font-size: 16pt; font-weight: bold; color: #2c3e50; margin: 0;}
+        
+        table.results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+        table.results-table tr { page-break-inside: avoid; }
+        table.results-table th, table.results-table td {
+            border: 1px solid #bdc3c7;
+            padding: 4px;
+            text-align: left;
+            vertical-align: top;
+        }
+        table.results-table th {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            font-weight: bold;
+            font-size: 8pt;
+        }
+        .criteria-col { width: 40%; }
+        .level-col { width: 20%; text-align: center;}
+        .comment-col { width: 40%; }
+        
+        .comment-box {
+            background-color: #fdfbf7;
+            border-left: 3px solid #f39c12;
+            padding: 5px;
+            margin-top: 5px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <table class="header-table">
+        <tr>
+            <td>
+                <h1>Evaluation Feedback Report</h1>
+                <p style="margin:2px 0;"><strong>Course:</strong> {{ course.code }} - {{ course.name }} ({{ course.period }})</p>
+                <p style="margin:2px 0;"><strong>Assessment:</strong> {{ assessment.name }} (Total Weight: {{ assessment.weight_percentage }}%)</p>
+                <p style="margin:2px 0;"><strong>Group:</strong> {{ group.name }} | <strong>Date:</strong> {{ evaluation.date|date:"F d, Y" }}</p>
+            </td>
+        </tr>
+    </table>
+
+    <h2>1. Group Performance</h2>
+    
+    {% if group_scores %}
+    <table class="results-table">
+        <thead>
+            <tr>
+                <th class="criteria-col">Criteria</th>
+                <th class="level-col">Level Achieved</th>
+                <th class="comment-col">Specific Feedback</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for score in group_scores %}
+            <tr>
+                <td><strong>{{ score.rubric_item.order }}</strong><br/>
+                    <span style="color:#555; font-size:7pt;">Weight: {{ score.rubric_item.weight }}</span><br/>
+                    {{ score.rubric_item.description }}
+                </td>
+                <td style="text-align: center; font-weight: bold;">{{ score.level_achieved.category_name }}<br/>({{ score.level_achieved.score_percentage|floatformat:0 }}%)</td>
+                <td>{{ score.comment|default:"-" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No group criteria evaluated.</p>
+    {% endif %}
+
+    <h2>2. Individual Performance & Final Grades</h2>
+    
+    {% for s_data in student_data %}
+        <table class="header-table" style="margin-bottom: 2px;">
+            <tr>
+                <td><h3>{{ s_data.obj.first_names }} {{ s_data.obj.last_name_1 }}</h3></td>
+                <td style="text-align: right;"><strong>Final Assessment Grade:</strong> <span style="font-weight: bold; font-size: 11pt;">{{ s_data.grade|floatformat:1 }}</span></td>
+            </tr>
+        </table>
+        
+        {% if s_data.scores %}
+        <table class="results-table">
+            <thead>
+                <tr>
+                    <th class="criteria-col">Criteria</th>
+                    <th class="level-col">Level Achieved</th>
+                    <th class="comment-col">Specific Feedback</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for score in s_data.scores %}
+                <tr>
+                    <td><strong>{{ score.rubric_item.order }}</strong><br/>
+                        <span style="color:#555; font-size:7pt;">Weight: {{ score.rubric_item.weight }}</span><br/>
+                        {{ score.rubric_item.description }}
+                    </td>
+                    <td style="text-align: center; font-weight: bold;">{{ score.level_achieved.category_name }}<br/>({{ score.level_achieved.score_percentage|floatformat:0 }}%)</td>
+                    <td>{{ score.comment|default:"-" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No individual criteria evaluated.</p>
+        {% endif %}
+    {% endfor %}
+
+    {% if evaluation.general_comment %}
+    <h2>3. General Comments</h2>
+    <div class="comment-box">
+        {{ evaluation.general_comment|linebreaks }}
+    </div>
+    {% endif %}
+
+    <div id="footerContent">
+        Cydonia Evaluation System - Page <pdf:pagenumber> of <pdf:pagecount>
+    </div>
+
+</body>
+</html>
