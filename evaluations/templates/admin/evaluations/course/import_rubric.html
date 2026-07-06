@@ -1,0 +1,25 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div id="content-main">
+    <h2>Import Rubric for: {{ course }}</h2>
+    <p>Please upload a JSON file (.json) containing the rubric definition.</p>
+    
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset class="module aligned">
+            <div class="form-row">
+                {{ form.json_file.label_tag }}
+                {{ form.json_file }}
+                {% if form.json_file.errors %}
+                    <div class="errornote">{{ form.json_file.errors }}</div>
+                {% endif %}
+            </div>
+        </fieldset>
+        
+        <div class="submit-row">
+            <input type="submit" value="Upload and Import" class="default" name="_save">
+        </div>
+    </form>
+</div>
+{% endblock %}

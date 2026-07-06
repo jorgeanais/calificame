@@ -1,0 +1,26 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div id="content-main">
+    <h2>Import Students for: {{ course }}</h2>
+    <p>Please upload an Excel file (.xlsx) containing the student list.</p>
+    <p>The system will search for a row containing the following headers: <strong>Rut Alumno</strong>, <strong>Apellido Paterno</strong>, <strong>Apellido Materno</strong>, and <strong>Nombre</strong>.</p>
+    
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset class="module aligned">
+            <div class="form-row">
+                {{ form.excel_file.label_tag }}
+                {{ form.excel_file }}
+                {% if form.excel_file.errors %}
+                    <div class="errornote">{{ form.excel_file.errors }}</div>
+                {% endif %}
+            </div>
+        </fieldset>
+        
+        <div class="submit-row">
+            <input type="submit" value="Upload and Import" class="default" name="_save">
+        </div>
+    </form>
+</div>
+{% endblock %}

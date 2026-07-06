@@ -1,0 +1,10 @@
+{% extends "admin/change_form.html" %}
+
+{% block object-tools-items %}
+    {{ block.super }}
+    {% if original.pk %}
+    <li>
+        <a href="{% url 'admin:rubric-matrix' original.pk %}" class="historylink" style="background-color: #2196F3; color: white;">Edit Matrix</a>
+    </li>
+    {% endif %}
+{% endblock %}
