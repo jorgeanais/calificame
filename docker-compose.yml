@@ -1,16 +1,20 @@
 services:
   web:
     build: .
+    user: root
+    restart: unless-stopped
     command: >
       sh -c "python manage.py migrate &&
              python manage.py collectstatic --noinput &&
-             gunicorn cydonia.wsgi:application --bind 0.0.0.0:8000"
+             gunicorn cydonia.wsgi:application --bind 0.0.0.0:8000 --workers 2 --threads 2 --timeout 60"
     volumes:
-      - .:/app
       - db_data:/app/db_data
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     environment:
       - DB_PATH=/app/db_data/db.sqlite3
+
 volumes:
   db_data:

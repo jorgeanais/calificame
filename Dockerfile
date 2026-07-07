@@ -1,21 +1,27 @@
 FROM python:3.12-slim
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Set work directory
 WORKDIR /app
 
-# Install dependencies
+# Instalar dependencias primero (cachea mejor la capa de Docker)
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy project
+# Copiar el proyecto
 COPY . /app/
 
-# Expose port
+# Usuario no-root
+RUN useradd -m appuser && chown -R appuser:appuser /app
+USER appuser
+
 EXPOSE 8000
 
-# Run gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "cydonia.wsgi:application"]
+# Ajustado para el hardware limitado de una Raspberry Pi.
+# Si tu Pi tiene 4+ cores y 4GB+ RAM puedes subir workers a 3.
+CMD ["gunicorn", "cydonia.wsgi:application", \
+     "--bind", "0.0.0.0:8000", \
+     "--workers", "2", \
+     "--threads", "2", \
+     "--timeout", "60"]

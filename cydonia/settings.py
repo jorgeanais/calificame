@@ -28,16 +28,27 @@ DATABASES = {
 }
 
 
-# Quick-start development settings - unsuitable for production
+# Production settings
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-*)7m$vch=4jl@r^wl6&$tu1%s)@*lfftkd!y&vn+$&f0yw9*fq'
+# Se lee desde una variable de entorno (ver .env.example). No hay valor
+# por defecto a propósito: si falta, la app debe fallar en vez de arrancar insegura.
+SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['*']
+# Lista separada por comas, ej: "192.168.1.50,califica.midominio.cl"
+ALLOWED_HOSTS = [
+    h.strip() for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',') if h.strip()
+]
+
+# Si la app queda detrás de un proxy/nginx con HTTPS, descomentar y ajustar:
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# CSRF_TRUSTED_ORIGINS = os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '').split(',')
+# SESSION_COOKIE_SECURE = True
+# CSRF_COOKIE_SECURE = True
 
 
 # Application definition
@@ -54,6 +65,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -111,7 +123,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = os.environ.get('DJANGO_TIME_ZONE', 'America/Santiago')
 
 USE_I18N = True
 
@@ -123,8 +135,16 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Whitenoise: comprime y cachea los estáticos para que gunicorn (sin nginx)
+# los sirva de forma razonable en producción.
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
 from django.utils.translation import gettext_lazy as _
-import os
 
 LANGUAGES = [
     ('en', _('English')),
