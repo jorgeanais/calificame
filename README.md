@@ -56,21 +56,17 @@ This project uses environment variables to manage security and infrastructure se
 
 5. If running in production mode (`DJANGO_DEBUG=False`), trigger the asset compilation process inside the web server container so static files can be distributed correctly:
 
-   Bash
-
    ```bash
    docker compose exec web python manage.py collectstatic --noinput
    ```
-
+   
 6. Access the web interface at `http://<your-raspberry-ip>:8000` (or `http://localhost:8000` locally).
 
 ### First-time Setup (Admin Account)
 
 To log into the system, initialize database structures and create your management account:
 
-Bash
-
-```
+```bash
 # Execute migrations to shape your SQLite DB tables
 docker compose exec web python manage.py migrate
 
@@ -88,17 +84,13 @@ Since data is mapped to a persistent docker volume, you can safely pull or injec
 
 - **Backup Database:** Copy the production DB file down to your host path:
 
-  Bash
-
-  ```
+  ```bash
   docker compose cp web:/app/db_data/db.sqlite3 ./backup_db.sqlite3
   ```
-
+  
 - **Restore Database:** Overwrite the running state with an external backup file and restore file system security:
 
-  Bash
-
-  ```
+  ```bash
   docker compose cp backup_db.sqlite3 web:/app/db_data/db.sqlite3
   docker compose exec web chmod 664 /app/db_data/db.sqlite3
   docker compose restart web
