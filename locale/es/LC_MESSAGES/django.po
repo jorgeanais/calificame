@@ -1619,9 +1619,6 @@ msgstr "Reporte de Retroalimentación"
 msgid "Evaluation Feedback Report"
 msgstr "Reporte de Retroalimentación de Evaluación"
 
-msgid "Course:"
-msgstr "Curso:"
-
 msgid "Assessment:"
 msgstr "Evaluación:"
 
