@@ -29,7 +29,7 @@
                     <select class="form-select" id="courseSelect">
                         <option value="">{% trans "-- Select a Course --" %}</option>
                         {% for course in courses %}
-                            <option value="{{ course.id }}">[{{ course.period }}] {{ course.code }}</option>
+                            <option value="{{ course.id }}">[{{ course.period }}] {{ course.code }} - {{ course.name }} (Section {{ course.section }})</option>
                         {% endfor %}
                     </select>
                 </div>
