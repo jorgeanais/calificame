@@ -78,6 +78,17 @@ Follow the prompts, then navigate to `http://<your-raspberry-ip>:8000/admin` to 
 
 ## Production Maintenance & Troubleshooting Commands
 
+### Application Updates
+
+To update the deployed application with the latest version from the repository:
+
+```bash
+git pull
+docker compose down
+docker compose up -d --build
+docker compose exec web python manage.py collectstatic --noinput
+```
+
 ### Database Backups & Restore (SQLite)
 
 Since data is mapped to a persistent docker volume, you can safely pull or inject state copies directly:
@@ -121,4 +132,3 @@ docker compose exec web python manage.py changepassword <username>
    - Add **Rubric Items** specifying if they are GROUP or INDIVIDUAL and their weight (e.g., 0.10).
 6. **Create an Evaluation** for a specific Group using the Rubric.
    - Use the inline forms to score the group items and individual items for each student.
-
