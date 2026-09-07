@@ -2,6 +2,22 @@
 {% load i18n %}
 
 {% block content %}
+<style>
+    .sortable {
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .sortable:hover,
+    .sortable:focus {
+        background-color: rgba(255, 255, 255, 0.15) !important;
+    }
+
+    .sort-icon {
+        font-size: 0.75rem;
+    }
+</style>
+
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="{% url 'index' %}">{% trans "Home" %}</a></li>
@@ -23,33 +39,33 @@
             <div class="card-body">
                 {% if student_data %}
                 <div class="table-responsive">
-                    <table class="table table-hover table-bordered align-middle">
+                    <table class="table table-hover table-bordered align-middle" id="studentsTable">
                         <thead class="table-dark text-center">
                             <tr>
                                 <th scope="col" rowspan="2" class="align-middle">#</th>
-                                <th scope="col" rowspan="2" class="align-middle">{% trans "Identification (RUT)" %}</th>
-                                <th scope="col" rowspan="2" class="align-middle">{% trans "Last Name(s)" %}</th>
-                                <th scope="col" rowspan="2" class="align-middle">{% trans "First Name(s)" %}</th>
-                                <th scope="col" rowspan="2" class="align-middle">{% trans "Assigned Group" %}</th>
+                                <th scope="col" rowspan="2" class="align-middle sortable" tabindex="0">{% trans "Identification (RUT)" %}</th>
+                                <th scope="col" rowspan="2" class="align-middle sortable" tabindex="0">{% trans "Last Name(s)" %}</th>
+                                <th scope="col" rowspan="2" class="align-middle sortable" tabindex="0">{% trans "First Name(s)" %}</th>
+                                <th scope="col" rowspan="2" class="align-middle sortable" tabindex="0">{% trans "Assigned Group" %}</th>
                                 
                                 {% if pres_assessments %}
                                 <th scope="col" colspan="{{ pres_assessments.count }}" class="bg-primary border-primary">{% trans "Presentation Assessments" %}</th>
-                                <th scope="col" rowspan="2" class="align-middle bg-primary border-primary">{% trans "NP" %} ({{ course.presentation_weight }}%)</th>
+                                <th scope="col" rowspan="2" class="align-middle bg-primary border-primary sortable" tabindex="0">{% trans "NP" %} ({{ course.presentation_weight }}%)</th>
                                 {% endif %}
                                 
                                 {% if exam_assessments %}
                                 <th scope="col" colspan="{{ exam_assessments.count }}" class="bg-info border-info text-dark">{% trans "Exam Assessments" %}</th>
-                                <th scope="col" rowspan="2" class="align-middle bg-info border-info text-dark">{% trans "NE" %} ({{ course.exam_weight }}%)</th>
+                                <th scope="col" rowspan="2" class="align-middle bg-info border-info text-dark sortable" tabindex="0">{% trans "NE" %} ({{ course.exam_weight }}%)</th>
                                 {% endif %}
                                 
-                                <th scope="col" rowspan="2" class="align-middle bg-success border-success">{% trans "Final Grade" %}</th>
+                                <th scope="col" rowspan="2" class="align-middle bg-success border-success sortable" tabindex="0">{% trans "Final Grade" %}</th>
                             </tr>
                             <tr>
                                 {% for assessment in pres_assessments %}
-                                    <th scope="col" class="bg-light text-dark"><small>{{ assessment.name }}<br>({{ assessment.weight_percentage }}%)</small></th>
+                                    <th scope="col" class="bg-light text-dark sortable" tabindex="0"><small>{{ assessment.name }}<br>({{ assessment.weight_percentage }}%)</small></th>
                                 {% endfor %}
                                 {% for assessment in exam_assessments %}
-                                    <th scope="col" class="bg-light text-dark"><small>{{ assessment.name }}<br>({{ assessment.weight_percentage }}%)</small></th>
+                                    <th scope="col" class="bg-light text-dark sortable" tabindex="0"><small>{{ assessment.name }}<br>({{ assessment.weight_percentage }}%)</small></th>
                                 {% endfor %}
                             </tr>
                         </thead>
@@ -138,3 +154,107 @@
 </div>
 {% endblock %}
 
+{% block extra_scripts %}
+<script>
+    const studentsTable = document.getElementById('studentsTable');
+
+    if (studentsTable) {
+        const headerRows = Array.from(studentsTable.tHead.rows);
+        const headerGrid = [];
+
+        headerRows.forEach((row, rowIndex) => {
+            if (!headerGrid[rowIndex]) {
+                headerGrid[rowIndex] = [];
+            }
+
+            let columnIndex = 0;
+            Array.from(row.cells).forEach(cell => {
+                while (headerGrid[rowIndex][columnIndex]) {
+                    columnIndex += 1;
+                }
+
+                const columnSpan = cell.colSpan || 1;
+                const rowSpan = cell.rowSpan || 1;
+                for (let rowOffset = 0; rowOffset < rowSpan; rowOffset += 1) {
+                    if (!headerGrid[rowIndex + rowOffset]) {
+                        headerGrid[rowIndex + rowOffset] = [];
+                    }
+                    for (let columnOffset = 0; columnOffset < columnSpan; columnOffset += 1) {
+                        headerGrid[rowIndex + rowOffset][columnIndex + columnOffset] = cell;
+                    }
+                }
+
+                if (cell.classList.contains('sortable')) {
+                    cell.dataset.columnIndex = columnIndex;
+                    const icon = document.createElement('i');
+                    icon.className = 'bi bi-arrow-down-up sort-icon ms-1';
+                    icon.setAttribute('aria-hidden', 'true');
+                    cell.appendChild(icon);
+                }
+
+                columnIndex += columnSpan;
+            });
+        });
+
+        const sortableHeaders = studentsTable.querySelectorAll('th.sortable');
+        sortableHeaders.forEach(header => {
+            const sort = () => sortStudents(Number(header.dataset.columnIndex), header);
+            header.addEventListener('click', sort);
+            header.addEventListener('keydown', event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    sort();
+                }
+            });
+        });
+
+        function sortStudents(columnIndex, activeHeader) {
+            const direction = activeHeader.dataset.sortDirection === 'ascending' ? 'descending' : 'ascending';
+            const rows = Array.from(studentsTable.tBodies[0].rows);
+            const collator = new Intl.Collator(document.documentElement.lang || 'en', {
+                numeric: true,
+                sensitivity: 'base'
+            });
+
+            rows.sort((rowA, rowB) => {
+                const valueA = rowA.cells[columnIndex].textContent.trim();
+                const valueB = rowB.cells[columnIndex].textContent.trim();
+                const missingA = /^(?:-|pending|pend\.|exempt)$/i.test(valueA);
+                const missingB = /^(?:-|pending|pend\.|exempt)$/i.test(valueB);
+
+                if (missingA || missingB) {
+                    if (missingA && missingB) return 0;
+                    return missingA ? 1 : -1;
+                }
+
+                const numberA = Number(valueA.replace(',', '.'));
+                const numberB = Number(valueB.replace(',', '.'));
+                const comparison = Number.isNaN(numberA) || Number.isNaN(numberB)
+                    ? collator.compare(valueA, valueB)
+                    : numberA - numberB;
+
+                return direction === 'ascending' ? comparison : -comparison;
+            });
+
+            rows.forEach((row, index) => {
+                row.cells[0].textContent = index + 1;
+                studentsTable.tBodies[0].appendChild(row);
+            });
+
+            sortableHeaders.forEach(header => {
+                delete header.dataset.sortDirection;
+                header.removeAttribute('aria-sort');
+                const icon = header.querySelector('.sort-icon');
+                icon.classList.remove('bi-arrow-up', 'bi-arrow-down');
+                icon.classList.add('bi-arrow-down-up');
+            });
+
+            activeHeader.dataset.sortDirection = direction;
+            activeHeader.setAttribute('aria-sort', direction);
+            const activeIcon = activeHeader.querySelector('.sort-icon');
+            activeIcon.classList.remove('bi-arrow-down-up');
+            activeIcon.classList.add(direction === 'ascending' ? 'bi-arrow-up' : 'bi-arrow-down');
+        }
+    }
+</script>
+{% endblock %}
