@@ -80,14 +80,61 @@ Follow the prompts, then navigate to `http://<your-raspberry-ip>:8000/admin` to 
 
 ### Application Updates
 
-To update the deployed application with the latest version from the repository:
+The production server is accessed with the `raspifive` SSH alias and the application is located at `/home/jorge/code/calificame`.
+
+Before updating, create a database backup and verify that the server repository has no unexpected local changes:
 
 ```bash
-git pull
+ssh raspifive
+cd /home/jorge/code/calificame
+docker compose cp web:/app/db_data/db.sqlite3 ./backup_db.sqlite3
+git status --short
+```
+
+Update the repository from the `main` branch. Use fast-forward-only pulls so local production commits are not overwritten accidentally:
+
+```bash
+git fetch origin main
+git pull --ff-only origin main
+```
+
+If the pull reports that the branches have diverged, stop and inspect the local commit before continuing:
+
+```bash
+git log --oneline --graph --decorate --all -10
+git diff origin/main..HEAD
+```
+
+Do not use `git reset --hard` in production. Preserve any required local commit by integrating `origin/main` intentionally, or resolve the repository history before deploying.
+
+Rebuild and restart the production container:
+
+```bash
 docker compose down
 docker compose up -d --build
+```
+
+If the update includes database migrations, apply them after the container starts:
+
+```bash
+docker compose exec web python manage.py migrate
+```
+
+Compile and collect static assets:
+
+```bash
 docker compose exec web python manage.py collectstatic --noinput
 ```
+
+Verify the container and inspect recent logs:
+
+```bash
+docker compose ps
+docker compose logs --tail=40 web
+curl -I http://127.0.0.1:8000/
+```
+
+The expected response for an unauthenticated request is normally `HTTP 302`, redirecting to the login page. Keep `.env`, SQLite databases and database backups out of commits.
 
 ### Database Backups & Restore (SQLite)
 
