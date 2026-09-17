@@ -9,15 +9,6 @@ from .models import Course, Evaluation, RubricCell, GroupItemScore, IndividualIt
 
 from django.contrib.auth.decorators import login_required
 
-def format_rut(value):
-    """Normalize a Chilean RUT as XXXXXXXX-X for synchronization exports."""
-    normalized = str(value).replace('.', '').replace(' ', '').strip().upper()
-    if '-' in normalized:
-        body, verifier = normalized.rsplit('-', 1)
-    else:
-        body, verifier = normalized[:-1], normalized[-1:]
-    return f"{body}-{verifier}" if body and verifier else normalized
-
 def get_default_period():
     now = timezone.now()
     year = now.year
@@ -156,7 +147,7 @@ def course_students(request, course_id):
             grade_list = item['pres_grades'] if assessment.assessment_type == 'PRESENTATION' else item['exam_grades']
             grade_obj = next((entry for entry in grade_list if entry['assessment'].id == assessment.id), None)
             if grade_obj and grade_obj['grade'] is not None:
-                identification = format_rut(item['student'].identification)
+                identification = item['student'].identification.replace('.', '').split('-')[0].strip()
                 grades[identification] = f"{grade_obj['grade']:.1f}".replace('.', ',')
 
         assessment_exports.append({

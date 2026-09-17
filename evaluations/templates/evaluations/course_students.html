@@ -195,10 +195,7 @@
 const notasAlumnos = ${grades};
 
 const limpiarRut = (texto) => {
-    const limpio = texto.replace(/\\./g, '').replace(/\\s/g, '').trim().toUpperCase();
-    const partes = limpio.split('-');
-    if (partes.length > 1) return partes[0] + '-' + partes[1];
-    return limpio.slice(0, -1) + '-' + limpio.slice(-1);
+    return texto.replace(/\\./g, '').split('-')[0].trim();
 };
 const filas = document.querySelectorAll('tr');
 const columnaEvaluacion = ${assessment.column_index};
