@@ -27,8 +27,27 @@
 
 <div class="row mb-4">
     <div class="col-md-12">
-        <h2 class="display-6">{% trans "Students Enrolled" %}</h2>
-        <p class="lead">{% trans "Course:" %} <strong>{{ course.name }}</strong> ({% trans "Section:" %} {{ course.section }})</p>
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+            <div>
+                <h2 class="display-6">{% trans "Students Enrolled" %}</h2>
+                <p class="lead mb-0">{% trans "Course:" %} <strong>{{ course.name }}</strong> ({% trans "Section:" %} {{ course.section }})</p>
+            </div>
+            {% if assessment_exports %}
+            <div class="d-flex align-items-end gap-2">
+                <div>
+                    <label class="form-label small mb-1" for="assessmentExportSelect">{% trans "Assessment to synchronize" %}</label>
+                    <select class="form-select" id="assessmentExportSelect">
+                        {% for assessment in assessment_exports %}
+                            <option value="{{ assessment.id }}">{{ assessment.name }} ({{ assessment.assessment_type }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="button" class="btn btn-outline-primary" id="downloadSyncScript">
+                    <i class="bi bi-download me-1" aria-hidden="true"></i>{% trans "Download sync script" %}
+                </button>
+            </div>
+            {% endif %}
+        </div>
         <p class="text-muted small">{% trans "Grading:" %} {% trans "Presentation" %} {{ course.presentation_weight }}% / {% trans "Exam" %} {{ course.exam_weight }}% {% if course.exemption_grade %}| {% trans "Exemption" %} >= {{ course.exemption_grade }}{% endif %}</p>
     </div>
 </div>
@@ -155,7 +174,65 @@
 {% endblock %}
 
 {% block extra_scripts %}
+{% if assessment_exports %}
+{{ assessment_exports|json_script:"assessmentExportData" }}
+{% endif %}
 <script>
+    const assessmentExportData = document.getElementById('assessmentExportData');
+    const assessmentExportSelect = document.getElementById('assessmentExportSelect');
+    const downloadSyncScript = document.getElementById('downloadSyncScript');
+
+    if (assessmentExportData && assessmentExportSelect && downloadSyncScript) {
+        const assessments = JSON.parse(assessmentExportData.textContent);
+
+        downloadSyncScript.addEventListener('click', () => {
+            const assessment = assessments.find(item => String(item.id) === assessmentExportSelect.value);
+            if (!assessment) return;
+
+            const grades = JSON.stringify(assessment.grades, null, 4);
+            const script = `// ${assessment.name} - ${assessment.assessment_type}
+// Ejecuta este script en la pagina del portal donde se muestran los alumnos.
+const notasAlumnos = ${grades};
+
+const limpiarRut = (texto) => texto.replace(/\\./g, '').split('-')[0].trim().toUpperCase();
+const filas = document.querySelectorAll('tr');
+const columnaEvaluacion = ${assessment.column_index};
+let contador = 0;
+
+filas.forEach(fila => {
+    const celdas = fila.querySelectorAll('td');
+    if (celdas.length > 1) {
+        const rutPagina = limpiarRut(celdas[1].innerText);
+        if (Object.prototype.hasOwnProperty.call(notasAlumnos, rutPagina)) {
+            const inputs = fila.querySelectorAll('input[type="text"]');
+            const inputNota = inputs[columnaEvaluacion];
+
+            if (inputNota) {
+                inputNota.value = notasAlumnos[rutPagina];
+                inputNota.dispatchEvent(new Event('input', { bubbles: true }));
+                inputNota.dispatchEvent(new Event('change', { bubbles: true }));
+                inputNota.dispatchEvent(new Event('blur', { bubbles: true }));
+                contador++;
+            }
+        }
+    }
+});
+
+console.log(\`Proceso terminado. Se actualizaron \${contador} notas en la columna ${assessment.name}.\`);
+`;
+
+            const blob = new Blob([script], { type: 'text/javascript;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            const safeName = assessment.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+            link.href = url;
+            link.download = `{{ course.code|slugify }}-${safeName || 'evaluacion'}.js`;
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+        });
+    }
+
     const studentsTable = document.getElementById('studentsTable');
 
     if (studentsTable) {

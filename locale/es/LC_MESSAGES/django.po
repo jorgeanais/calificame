@@ -199,6 +199,14 @@ msgstr "Eximición"
 msgid "Identification (RUT)"
 msgstr "Identificación (RUT)"
 
+#: evaluations/templates/evaluations/course_students.html
+msgid "Assessment to synchronize"
+msgstr "Evaluación a sincronizar"
+
+#: evaluations/templates/evaluations/course_students.html
+msgid "Download sync script"
+msgstr "Descargar script de sincronización"
+
 #: evaluations/templates/evaluations/course_students.html:31
 msgid "Last Name(s)"
 msgstr "Apellidos"

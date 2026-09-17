@@ -137,12 +137,33 @@ def course_students(request, course_id):
             'is_exempt': is_exempt,
             'final_grade': final_grade
         })
+
+    # Build one RUT-to-grade map per assessment for the portal synchronization scripts.
+    assessment_exports = []
+    ordered_assessments = list(pres_assessments) + list(exam_assessments)
+    for column_index, assessment in enumerate(ordered_assessments):
+        grades = {}
+        for item in student_data:
+            grade_list = item['pres_grades'] if assessment.assessment_type == 'PRESENTATION' else item['exam_grades']
+            grade_obj = next((entry for entry in grade_list if entry['assessment'].id == assessment.id), None)
+            if grade_obj and grade_obj['grade'] is not None:
+                identification = item['student'].identification.replace('.', '').split('-')[0].strip().upper()
+                grades[identification] = f"{grade_obj['grade']:.1f}".replace('.', ',')
+
+        assessment_exports.append({
+            'id': assessment.id,
+            'name': assessment.name,
+            'assessment_type': str(assessment.get_assessment_type_display()),
+            'column_index': column_index,
+            'grades': grades,
+        })
         
     context = {
         'course': course,
         'pres_assessments': pres_assessments,
         'exam_assessments': exam_assessments,
         'student_data': student_data,
+        'assessment_exports': assessment_exports,
     }
     return render(request, 'evaluations/course_students.html', context)
 
