@@ -80,13 +80,10 @@ Follow the prompts, then navigate to `http://<your-raspberry-ip>:8000/admin` to 
 
 ### Application Updates
 
-The production server is accessed with the `raspifive` SSH alias and the application is located at `/home/jorge/code/calificame`.
-
 Before updating, create a database backup and verify that the server repository has no unexpected local changes:
 
 ```bash
-ssh raspifive
-cd /home/jorge/code/calificame
+cd /path/to/calificame
 docker compose cp web:/app/db_data/db.sqlite3 ./backup_db.sqlite3
 git status --short
 ```
