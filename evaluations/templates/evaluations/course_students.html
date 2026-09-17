@@ -232,6 +232,7 @@ console.log(\`Proceso terminado. Se actualizaron \${contador} notas en la column
             const safeName = assessment.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
             link.href = url;
             link.download = `{{ course.code|slugify }}-${safeName || 'evaluacion'}.js`;
+            document.body.appendChild(link);
             link.click();
             link.remove();
             URL.revokeObjectURL(url);
