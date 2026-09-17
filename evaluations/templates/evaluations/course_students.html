@@ -194,7 +194,12 @@
 // Ejecuta este script en la pagina del portal donde se muestran los alumnos.
 const notasAlumnos = ${grades};
 
-const limpiarRut = (texto) => texto.replace(/\\./g, '').split('-')[0].trim().toUpperCase();
+const limpiarRut = (texto) => {
+    const limpio = texto.replace(/\\./g, '').replace(/\\s/g, '').trim().toUpperCase();
+    const partes = limpio.split('-');
+    if (partes.length > 1) return `${partes[0]}-${partes[1]}`;
+    return `${limpio.slice(0, -1)}-${limpio.slice(-1)}`;
+};
 const filas = document.querySelectorAll('tr');
 const columnaEvaluacion = ${assessment.column_index};
 let contador = 0;
